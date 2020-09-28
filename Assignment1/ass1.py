@@ -16,7 +16,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 def plot(tickLoc, tickLables, residuals, title, filename, save):
-    plt.figure(figsize=(18, 8))
+    plt.figure(figsize=(24, 8))
     plt.hlines(0, tickLoc[0], tickLoc[-1])
     plt.scatter(tickLoc, residuals, c = 'r', label = 'residuals')
     plt.xlabel('time')
@@ -35,10 +35,13 @@ def regression(y, C, ticks):
     # Regressing C on Y as a function of time
     reg_model = LinearRegression()
     y_array = np.array([[j] for j in y])
+    C_array = np.array([[i] for i in C])
     reg_model.fit(y_array, C)
 
     r_2 = r2_score(C, reg_model.predict(y_array))
+    print(r_2)
     # slope, intercept, r_value, p_value, std_err = stats.linregress(y, C)
+    # print(slope, intercept, r_value, p_value, std_err)
 
     predictions = reg_model.predict(y_array)
     residuals = []
@@ -50,34 +53,36 @@ def regression(y, C, ticks):
 
     title = 'Linear regression residuals as a function of time'
     flnm = '/regression.pdf'
-    save = False
-    plot(tick_loc, ticks, residuals, flnm, title, save)
+    save = True
+    plot(tick_loc, ticks, residuals, title, flnm, save)
 
     return None
 
 
 def log_regression(y, C, ticks):
     # log-linear regression of logC on logY
-    reg_model = LinearRegression()
-    y_array = np.array([[np.log(j)] for j in y])
+    log_reg_model = LinearRegression()
+    log_y_array = np.array([[np.log(j)] for j in y])
     log_C = np.array([np.log(c) for c in C])
-    reg_model.fit(y_array, log_C)
+    log_reg_model.fit(log_y_array, log_C)
 
-    r_2 = r2_score(log_C, reg_model.predict(y_array))
+    r_2 = r2_score(log_C, log_reg_model.predict(log_y_array))
+    print(r_2)
     # slope, intercept, r_value, p_value, std_err = stats.linregress(y, C)
+    # print(slope, intercept, r_value, p_value, std_err)
 
-    predictions = reg_model.predict(y_array)
-    residuals = []
+    log_predictions = log_reg_model.predict(log_y_array)
+    log_residuals = []
     for i in range(len(y)):
-        temp_resid = log_C[i] - predictions[i]
-        residuals.append(temp_resid)
+        temp_resid = log_C[i] - log_predictions[i]
+        log_residuals.append(temp_resid)
 
     tick_loc = [x for x in range(len(ticks))]
 
     title = 'Log-linear regression residuals as a function of time'
     flnm = '/log_regression.pdf'
-    save = False
-    plot(tick_loc, ticks, residuals, title, flnm, save)
+    save = True
+    plot(tick_loc, ticks, log_residuals, title, flnm, save)
 
     return None
 
@@ -86,6 +91,7 @@ if __name__ == "__main__":
     start = time.time()
 
     in_dir = '/Users/jsmatte/github/ECON662D1/Assignment1/data'
+    out_dir = '/Users/jsmatte/Documents/Tex/ECON662D1/Assignment1'
 
     # household final consumption file
     hhfc_file = str(in_dir + '/3610010701-eng-prepro.csv')
@@ -106,21 +112,26 @@ if __name__ == "__main__":
     # Consumption expenditures class -> C -> df column
     # Income -> Y
     y = hhi_df.T.iloc[:, 0].values[1:]
+    # print(type(y))
+    # print(y.shape)
+    # print('')
     C = hhfc_df.T.iloc[:, 55].values[1:]
+    # print(type(C))
+    # print(C.shape)
+    # print('')
+
+    # x = np.random.random(10)
+    # print(x)
+    # y = 1.6 * x + np.random.random(10)
+    # print(y)
+    # slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+    # print(slope, intercept, r_value, p_value, std_err)
+
 
     tick_labels = hhi_df.columns.values[1:]
 
     regression(y, C, tick_labels)
     log_regression(y, C, tick_labels)
-
-
-    # # test
-    # diabetes_X, diabetes_y = datasets.load_diabetes(return_X_y=True)
-    # diabetes_X = diabetes_X[:, np.newaxis, 2]
-    # diabetes_X_train = diabetes_X[:-20]
-    # diabetes_y_train = diabetes_y[:-20]
-    # print(diabetes_X_train.shape)
-    # print(diabetes_y_train.shape)
 
 
     end = time.time()
