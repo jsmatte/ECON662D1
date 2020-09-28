@@ -15,13 +15,37 @@ from sklearn.metrics import r2_score
 import matplotlib
 import matplotlib.pyplot as plt
 
+
+def plot_reg(y, C, y_array, predictions, filename, save):
+    plt.plot(y_array, predictions, label = 'regression line')
+    plt.scatter(y, C, c = 'r')
+    plt.xlabel('income')
+    plt.ylabel('consumption')
+    plt.legend(loc = 'upper left')
+    if save:
+        plt.savefig(str(out_dir + filename))
+    plt.show()
+    plt.close()
+
+    return None
+
+
+def plot_resid(predictions, residuals):
+    plt.scatter(predictions, residuals)
+    plt.hlines(0, min(predictions), max(predictions))
+    plt.show()
+    plt.close()
+
+    return None
+
+
 def plot(tickLoc, tickLables, residuals, title, filename, save):
     plt.figure(figsize=(24, 8))
     plt.hlines(0, tickLoc[0], tickLoc[-1])
     plt.scatter(tickLoc, residuals, c = 'r', label = 'residuals')
-    plt.xlabel('time')
+    plt.xlabel('Time')
     plt.xticks(ticks = tickLoc, labels = tickLables, rotation = 90)
-    plt.ylabel('Income')
+    plt.ylabel('Consumption (x$1,000,000, 2012 dollars)')
     plt.legend(loc = 'upper right')
     plt.title(str(title))
     if save:
@@ -37,13 +61,14 @@ def regression(y, C, ticks):
     y_array = np.array([[j] for j in y])
     C_array = np.array([[i] for i in C])
     reg_model.fit(y_array, C)
+    print(reg_model.coef_, reg_model.intercept_)
 
     r_2 = r2_score(C, reg_model.predict(y_array))
-    print(r_2)
-    # slope, intercept, r_value, p_value, std_err = stats.linregress(y, C)
-    # print(slope, intercept, r_value, p_value, std_err)
+    # print(r_2)
 
     predictions = reg_model.predict(y_array)
+    # plot_reg(y, C, y_array, predictions, 'reg_plot.png', False)
+
     residuals = []
     for i in range(len(y)):
         temp_resid = C[i] - predictions[i]
@@ -51,10 +76,11 @@ def regression(y, C, ticks):
 
     tick_loc = [x for x in range(len(ticks))]
 
-    title = 'Linear regression residuals as a function of time'
+    title = 'Residuals of Linear Regression as a Function of Time'
     flnm = '/regression.pdf'
     save = True
     plot(tick_loc, ticks, residuals, title, flnm, save)
+    # plot_resid(predictions, residuals)
 
     return None
 
@@ -65,13 +91,14 @@ def log_regression(y, C, ticks):
     log_y_array = np.array([[np.log(j)] for j in y])
     log_C = np.array([np.log(c) for c in C])
     log_reg_model.fit(log_y_array, log_C)
+    print(log_reg_model.coef_, log_reg_model.intercept_)
 
     r_2 = r2_score(log_C, log_reg_model.predict(log_y_array))
-    print(r_2)
-    # slope, intercept, r_value, p_value, std_err = stats.linregress(y, C)
-    # print(slope, intercept, r_value, p_value, std_err)
+    # print(r_2)
 
     log_predictions = log_reg_model.predict(log_y_array)
+    # plot_reg(log_y_array, log_C, log_y_array, predictions, 'log_reg_plot.png', False)
+
     log_residuals = []
     for i in range(len(y)):
         temp_resid = log_C[i] - log_predictions[i]
@@ -79,10 +106,11 @@ def log_regression(y, C, ticks):
 
     tick_loc = [x for x in range(len(ticks))]
 
-    title = 'Log-linear regression residuals as a function of time'
+    title = 'Residuals of Log-linear Regression as a Function of Time'
     flnm = '/log_regression.pdf'
     save = True
     plot(tick_loc, ticks, log_residuals, title, flnm, save)
+    # plot_resid(log_predictions, log_residuals)
 
     return None
 
@@ -101,32 +129,25 @@ if __name__ == "__main__":
 
     # load files as pd
     hhfc_df = pd.read_csv(hhfc_file, sep = ',', header = 0)
-    # print(hhfc_df)
+    # print(hhfc_df.iloc[55])
+    # print(hhfc_df.T)
     # print(hhfc_df.Estimates.values)
     # print(hhfc_df.dtypes)
+    # print('')
 
     hhi_df = pd.read_csv(hhi_file, sep = ',', header = 0)
+    # print(hhi_df.iloc[0])
+    # print(hhi_df.T)
     # print(hhi_df.Estimates.values)
+    # print('')
 
     # get the relevant data from each df
     # Consumption expenditures class -> C -> df column
     # Income -> Y
     y = hhi_df.T.iloc[:, 0].values[1:]
-    # print(type(y))
-    # print(y.shape)
-    # print('')
     C = hhfc_df.T.iloc[:, 55].values[1:]
-    # print(type(C))
-    # print(C.shape)
-    # print('')
-
-    # x = np.random.random(10)
-    # print(x)
-    # y = 1.6 * x + np.random.random(10)
     # print(y)
-    # slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-    # print(slope, intercept, r_value, p_value, std_err)
-
+    # print(C)
 
     tick_labels = hhi_df.columns.values[1:]
 
